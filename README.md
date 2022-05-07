@@ -5,6 +5,8 @@
 - `php artisan key:generate`
 - `php artisan migrate:fresh --seed`
 
+Note: I updated .env.example file with 'sqlite' connection to make installation process easier
+
 ### Testing
 All tests are done well, you can easly run `php artisan test`     
 Or `php artisan serve` and test endpoints via postman, creds:   
@@ -17,4 +19,4 @@ Or `php artisan serve` and test endpoints via postman, creds:
 - /user/register: POST - name, email, password, password_confirmation
 - /user/logout: POST - Needs bearer auth token    
 
-P.s. all routes demanded in task needs authentification, get bearer token from user/login or user/register endpoint
+P.s. all routes demanded in task needs authentification (Sanctum), if you testing with postman get bearer token from user/login or user/register endpoint
