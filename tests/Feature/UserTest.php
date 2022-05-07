@@ -17,6 +17,7 @@ class UserTest extends TestCase
      */
     public function test_user_can_register()
     {
+        // send request with creds
         $response = $this->postJson('api/user/register', [
             'name' => "MaestroError",
             'email' => "maestro@example.com",
@@ -24,6 +25,7 @@ class UserTest extends TestCase
             "password_confirmation" => "12345678",
         ]);
 
+        // check status
         $response->assertStatus(201)
         ->assertJson(fn (AssertableJson $json) =>
             $json->hasAll(['token', 'user'])
@@ -38,16 +40,19 @@ class UserTest extends TestCase
      */
     public function test_user_can_login()
     {
+        // create user with custom password
         $customPassword = "12345678";
         $user = User::factory([
             "password" => bcrypt($customPassword),
         ])->create();
 
+        // make login request
         $response = $this->postJson('api/user/login', [
             "email" => $user->email,
             "password" => $customPassword,
         ]);
 
+        // check status and json
         $response->assertStatus(200)
         ->assertJson(fn (AssertableJson $json) =>
             $json->hasAll(['token', 'user'])
