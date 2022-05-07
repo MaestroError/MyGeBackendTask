@@ -68,26 +68,28 @@ class ApiController extends Controller
 
         // set data
         $data["products"] = $cart;
-        $data['discount'] = 0.0;
+        $data['discount'] = round(0, 2);
 
         // search for allowed groups
         $allowedGroups = [];
         $cartProductIds = $cart->pluck("product_id");
 
-        foreach ($groups as $group) {
-            $groupids = $group->products()->get()->pluck("product_id");
-            $diff = $groupids->diff($cartProductIds);
-            if($diff->isEmpty()) {
-                $allowedGroups[] = [
-                    "ids" => $groupids,
-                    "discount" => $group->discount
-                ];
+        if(!empty($groups)) {
+            foreach ($groups as $group) {
+                $groupids = $group->products()->get()->pluck("product_id");
+                $diff = $groupids->diff($cartProductIds);
+                if($diff->isEmpty()) {
+                    $allowedGroups[] = [
+                        "ids" => $groupids,
+                        "discount" => $group->discount
+                    ];
+                }
             }
         }
 
         // check allowedGroups and apply discount
         if(!empty($allowedGroups)) {
-            $newDiscount = 0;
+            $newDiscount = 0.0;
             foreach ($allowedGroups as $group) {
                 $discountPerc = 0;
                 $minQuantity = 1000;
@@ -105,7 +107,7 @@ class ApiController extends Controller
             $data['discount'] = round($newDiscount, 2);
         }
 
-
+        
         return response($data, 200); 
     }
 

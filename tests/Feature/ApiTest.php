@@ -167,6 +167,6 @@ class ApiTest extends TestCase
         // discount of second product
         $pr2dis = ($prod2->price*$disPer)/100 * $min;
 
-        return round($pr1dis + $pr2dis, 2);
+        return round($pr1dis + $pr2dis, 0);
     }
 }
