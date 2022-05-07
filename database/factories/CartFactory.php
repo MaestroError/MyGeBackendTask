@@ -17,7 +17,7 @@ class CartFactory extends Factory
     public function definition()
     {
         return [
-            "quantity" => $this->faker->randomDigit()
+            "quantity" => rand(1, 10),
         ];
     }
 }
