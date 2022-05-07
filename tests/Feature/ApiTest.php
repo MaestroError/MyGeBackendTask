@@ -16,6 +16,14 @@ class ApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        // seed the database
+        $this->artisan('db:seed');
+    }
+
     /**
      * Test if user can add some product in cart
      *
@@ -85,6 +93,21 @@ class ApiTest extends TestCase
         );
     }
 
+    public function test_example_from_task_completed()
+    {
+        // get task example cart user
+        $user = User::where("email", "cart@user.com")->first();
+        $response = $this->actingAs($user, 'sanctum')
+        ->getJson('api/getUserCart');
+
+        // check status and json
+        $response->assertStatus(200)
+        ->assertJson(fn (AssertableJson $json) =>
+            $json->hasAll(['products', 'discount'])
+                ->where("discount", 10.5)->etc()
+        );
+    }
+
     public function test_it_can_return_correct_cart_info()
     {
         // create data
@@ -118,22 +141,6 @@ class ApiTest extends TestCase
 
     }
 
-    public function test_example_from_task_completed()
-    {
-        $this->seed();
-        // get task example cart user
-        $user = User::where("email", "cart@user.com")->first();
-        $response = $this->actingAs($user, 'sanctum')
-        ->getJson('api/getUserCart');
-
-        // check status and json
-        $response->assertStatus(200)
-        ->assertJson(fn (AssertableJson $json) =>
-            $json->hasAll(['products', 'discount'])
-                ->where("discount", 10.5)->etc()
-        );
-    }
-
     protected function getUserWithCart(): array
     {
         $product = Products::factory()->for(User::factory())->create();
@@ -155,18 +162,17 @@ class ApiTest extends TestCase
     {
         // get to know, which one is lesser
         $min = $pc1->quantity < $pc2->quantity ? $pc1->quantity : $pc2->quantity;
-
         // count total of cart
         $total = ($prod1->price*$pc1->quantity) + ($prod2->price*$pc2->quantity);
-
+        
         // dicount of percent
-        $disPer = $group->dicount;
+        $disPer = $group->discount;
 
         // discount of first product
         $pr1dis = ($prod1->price*$disPer)/100 * $min;
         // discount of second product
         $pr2dis = ($prod2->price*$disPer)/100 * $min;
 
-        return round($pr1dis + $pr2dis, 0);
+        return round($pr1dis + $pr2dis, 2);
     }
 }

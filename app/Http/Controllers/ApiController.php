@@ -59,12 +59,12 @@ class ApiController extends Controller
         });
 
         foreach ($cart as $item) {
-            if($item->products->has("groups")) {
-                // chooses first group
-                $group = $item->products->groups()->first();
+            $group = $item->products()->first()->groups()->first();
+            if($group) {
                 $groups[] = $group;
             }
         }
+
 
         // set data
         $data["products"] = $cart;
@@ -76,38 +76,48 @@ class ApiController extends Controller
 
         if(!empty($groups)) {
             foreach ($groups as $group) {
-                $groupids = $group->products()->get()->pluck("product_id");
+                $groupids = $group->products()->get()->pluck("id");
                 $diff = $groupids->diff($cartProductIds);
                 if($diff->isEmpty()) {
                     $allowedGroups[] = [
+                        "group_id" => $group->id,
                         "ids" => $groupids,
                         "discount" => $group->discount
                     ];
                 }
+                
             }
         }
 
         // check allowedGroups and apply discount
         if(!empty($allowedGroups)) {
+            $groupsUsed = [];
+
             $newDiscount = 0.0;
             foreach ($allowedGroups as $group) {
-                $discountPerc = 0;
-                $minQuantity = 1000;
-                $cart->map(function ($item) {
-                    if(in_array($item->product_id, $group["ids"])) {
-                        // calculate min minQuantity
-                        $minQuantity = $minQuantity < $item->quantity ? $minQuantity : $item->quantity;
-                        $discountPerc = $group['discount'];
+                if(!in_array($group['group_id'], $groupsUsed)) {
+                    $discountPerc = 0;
+                    $minQuantity = 1000;
+                    foreach ($cart as $item) {
+                        if(in_array($item->product_id, $group["ids"]->toArray())) {
+                            // calculate min minQuantity
+                            $minQuantity = $minQuantity < $item->quantity ? $minQuantity : $item->quantity;
+                            $discountPerc = $group['discount'];
+                        }
                     }
-                });
-                $cart->map(function ($item) {
-                    $newDiscount = $newDiscount + $this->getDiscount($item->price, $discountPerc, $minQuantity);
-                });
+                    foreach ($cart as $item) {
+                        if(in_array($item->product_id, $group["ids"]->toArray())) {
+                            // calculate new discount
+                            $newDiscount = $newDiscount + $this->getDiscount($item->price, $discountPerc, $minQuantity);
+                        }
+                    }
+                    $groupsUsed[] = $group['group_id'];
+                }
             }
             $data['discount'] = round($newDiscount, 2);
         }
 
-        
+        // dd($data);
         return response($data, 200); 
     }
 
