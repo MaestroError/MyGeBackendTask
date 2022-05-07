@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
 use App\Models\User;
@@ -24,7 +25,7 @@ class ApiTest extends TestCase
     {
         // create user and product
         $user = User::factory()->create();
-        $product = Products::factory()->create();
+        $product = Products::factory()->for(User::factory())->create();
 
         // login as new user and try add product in cart
         $response = $this->actingAs($user, 'sanctum')
@@ -128,8 +129,8 @@ class ApiTest extends TestCase
         // check status and json
         $response->assertStatus(200)
         ->assertJson(fn (AssertableJson $json) =>
-            $json->hasAll(['message', 'status'])
-                ->where("discount", 10.5)
+            $json->hasAll(['products', 'discount'])
+                ->where("discount", 10.5)->etc()
         );
     }
 
