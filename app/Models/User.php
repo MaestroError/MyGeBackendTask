@@ -8,6 +8,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+use App\Models\Products;
+use App\Models\Cart;
+use App\Models\UserProductGroups;
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -41,4 +45,28 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the Products of User.
+     */
+    public function products()
+    {
+        return $this->hasMany(Products::class);
+    }
+
+    /**
+     * Get the Product groupss of User.
+     */
+    public function userProductGroups()
+    {
+        return $this->hasMany(UserProductGroups::class);
+    }
+
+    /**
+     * Get the Cart of User.
+     */
+    public function cart()
+    {
+        return $this->hasMany(Cart::class);
+    }
 }
